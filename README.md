@@ -16,6 +16,6 @@ tjy-gitnub/win12 是一个由学生开发者使用 HTML、CSS 和 JavaScript 编
 
 **我应该如何支持这个项目？**
 
-你可以在我们的GitHub专页上简单Star一下，向我们捐款，或加入这个项目的开发 。
+你可以在我们的 GitHub 专页上简单 Star 一下，向我们捐款，或加入这个项目的开发 。
 
 #### 此 Wiki 采用 CC BY-SA 4.0 授权哦～
