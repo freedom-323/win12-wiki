@@ -1,4 +1,3 @@
-
 # Windows 12 网页版 Wiki 📋
 
 ## 项目介绍
@@ -7,7 +6,6 @@ tjy-gitnub/win12 是一个由学生开发者使用 HTML、CSS 和 JavaScript 编
 
 ## FAQ
 
-\
 **这是免费开源的吗？**
 
 是的，任何标榜付费版或含有广告的 Windows 12 与我们无关。\
@@ -20,4 +18,3 @@ tjy-gitnub/win12 是一个由学生开发者使用 HTML、CSS 和 JavaScript 编
 你可以在我们的GitHub专页上简单Star一下，向我们捐款，或加入这个项目的开发 。
 
 #### 此 Wiki 采用 CC BY-SA 4.0 授权哦～
-
