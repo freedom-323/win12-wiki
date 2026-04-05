@@ -22,21 +22,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Preprocess GitBook Syntax
-        # We use a standard shell loop to avoid xargs exit code 123
         run: |
-          for file in $(find . -name "*.md"); do
-            # 1. Convert {% embed url="..." %} to <iframe>
-            sed -i -E 's/\{%[[:space:]]*embed[[:space:]]+url=["'\'']([^"'\'']+)["'\''][[:space:]]*%\}/<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' "$file"
+          # Handle filenames with spaces by setting IFS to newline
+          IFS=$'\n'
+          for file in $(find . -type f -name "*.md"); do
+            echo "Processing $file..."
             
-            # 2. Emergency cleanup for any missed 'embed' tags
-            sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/<!-- GitBook Embed Removed -->/g' "$file"
+            # 1. Convert {% embed url="..." %} to <iframe>
+            sed -i -E 's/\{%[[:space:]]*embed[[:space:]]+url=["'\'']([^"'\'']+)["'\''][[:space:]]*%\}/<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' "$file" || true
+            
+            # 2. Emergency cleanup for any missed 'embed' tags to prevent Jekyll crash
+            sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/<!-- GitBook Embed Removed -->/g' "$file" || true
 
             # 3. Format line 2 as an italicized lead (description)
-            sed -i '2s/^/> _/; 2s/$/ _ <br>/' "$file"
+            sed -i '2s/^/> _/; 2s/$/ _ <br>/' "$file" || true
 
             # 4. Convert GitBook {% hint %} to blockquotes
-            sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g' "$file"
-            sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g' "$file"
+            sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g' "$file" || true
+            sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g' "$file" || true
           done
 
       - name: Setup Pages
