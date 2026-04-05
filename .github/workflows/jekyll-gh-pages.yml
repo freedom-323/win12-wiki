@@ -23,21 +23,27 @@ jobs:
 
       - name: Preprocess GitBook Syntax
         run: |
-          # Handle filenames with spaces by setting IFS to newline
           IFS=$'\n'
           for file in $(find . -type f -name "*.md"); do
             echo "Processing $file..."
             
-            # 1. Convert {% embed url="..." %} to <iframe>
-            sed -i -E 's/\{%[[:space:]]*embed[[:space:]]+url=["'\'']([^"'\'']+)["'\''][[:space:]]*%\}/<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' "$file" || true
+            # 1. Fix special Bold / Space entities (&#x20;)
+            sed -i 's/&#x20;/ /g' "$file" || true
+
+            # 2. Convert {% embed url="..." %} to <iframe>
+            # We do this BEFORE the description logic so it doesn't get messed up
+            sed -i -E 's/\{%[[:space:]]*embed[[:space:]]+url=["'\'']([^"'\'']+)["'\''][[:space:]]*%\}/<iframe src="\1" width="100%" height="400" frameborder="0" allowfullscreen><\/iframe>/g' "$file" || true
             
-            # 2. Emergency cleanup for any missed 'embed' tags to prevent Jekyll crash
+            # 3. Format line 2 as description ONLY if it's NOT SUMMARY.md and NOT a video/tag
+            if [[ "$file" != *"SUMMARY.md"* ]]; then
+               # Only apply blockquote if the line actually contains text (not a tag or empty)
+               sed -i '2{/^[^<{%]/s/^/> _/; /^[^<{%]/s/$/ _ <br>/}' "$file" || true
+            fi
+
+            # 4. Emergency cleanup for any missed 'embed' tags
             sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/<!-- GitBook Embed Removed -->/g' "$file" || true
 
-            # 3. Format line 2 as an italicized lead (description)
-            sed -i '2s/^/> _/; 2s/$/ _ <br>/' "$file" || true
-
-            # 4. Convert GitBook {% hint %} to blockquotes
+            # 5. Convert GitBook {% hint %} to blockquotes
             sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g' "$file" || true
             sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g' "$file" || true
           done
