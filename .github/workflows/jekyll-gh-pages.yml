@@ -1,4 +1,3 @@
-# Workflow for building and deploying a GitBook mirror to GitHub Pages
 name: Deploy GitBook Mirror to GitHub Pages
 
 on:
@@ -22,18 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Preprocess GitBook Syntax
+      - name: Preprocess GitBook Content
+        # We use 'find' and 'sed' to replace GitBook-specific tags with standard HTML
+        # This prevents Jekyll from seeing 'Unknown tags'
         run: |
-          # 1. Force remove any existing 'embed' tags that Jekyll doesn't understand.
-          # The regex handles flexible spacing: {% embed url="..."  %}
-          # It replaces them with a responsive HTML5 iframe.
-          find . -type f -name "*.md" -exec sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin-bottom:20px;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' {} +
+          # 1. Replace {% embed url="..." %} with a responsive iframe
+          find . -type f -name "*.md" -exec sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' {} +
           
-          # 2. Format the GitBook description (line 2) to look like a 'lead' paragraph in Primer theme.
-          # It wraps the text in italicized blockquotes.
+          # 2. Convert line 2 (Description) into a blockquote/lead style for Primer
           find . -type f -name "*.md" -exec sed -i '2s/^/> _/; 2s/$/ _ <br>/' {} +
 
-          # 3. Optional: Fix GitBook Hints (info/warning boxes) so they don't break the build
+          # 3. Strip out other GitBook blocks like {% hint %} which also cause build errors
           find . -type f -name "*.md" -exec sed -i 's/{% hint style="[^"]*" %}/<blockquote><strong>Note:<\/strong><br>/g' {} +
           find . -type f -name "*.md" -exec sed -i 's/{% endhint %}/<\/blockquote>/g' {} +
 
