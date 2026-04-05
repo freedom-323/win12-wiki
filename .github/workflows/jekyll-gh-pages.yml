@@ -1,4 +1,5 @@
-name: Deploy GitBook Mirror to GitHub Pages
+# Workflow for building and deploying a GitBook mirror to GitHub Pages
+name: Deploy GitBook Mirror with Preprocessing
 
 on:
   push:
@@ -22,17 +23,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Preprocess GitBook Syntax
+        # This step cleans the Markdown files so Jekyll doesn't crash on GitBook-specific tags
         run: |
-          # 1. Force-remove {% embed %} tags by converting them to standard HTML iframes
-          # This handles variations like {% embed ... %}, {%embed ...%}, and extra spaces.
-          find . -type f -name "*.md" -print0 | xargs -0 sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g'
+          # 1. FIX EMBED TAGS: Convert {% embed url="..." %} to standard <iframe>
+          # This regex handles single/double quotes and flexible spacing to prevent the 'Unknown tag' error.
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i -E 's/\{%[[:space:]]*embed[[:space:]]+url=["'\'']([^"'\'']+)["'\''][[:space:]]*%\}/<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g'
           
-          # 2. Format GitBook description (line 2) to match Primer theme style
-          find . -type f -name "*.md" -print0 | xargs -0 sed -i '2s/^/> _/; 2s/$/ _ <br>/'
+          # 2. EMERGENCY CLEANUP: Force-delete any remaining {% embed ... %} tags that missed the first pass
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/<!-- Removed GitBook Embed -->/g'
 
-          # 3. Strip out GitBook Hints {% hint %} to prevent additional Liquid errors
-          find . -type f -name "*.md" -print0 | xargs -0 sed -i 's/{% hint style="[^"]*" %}/<blockquote><strong>Note:<\/strong><br>/g'
-          find . -type f -name "*.md" -print0 | xargs -0 sed -i 's/{% endhint %}/<\/blockquote>/g'
+          # 3. FIX DESCRIPTION: Style the 2nd line of every file as an italicized lead paragraph (Primer theme style)
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i '2s/^/> _/; 2s/$/ _ <br>/'
+          
+          # 4. FIX HINTS: Convert GitBook {% hint %} blocks into standard blockquotes
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g'
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g'
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
