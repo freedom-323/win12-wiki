@@ -21,19 +21,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Preprocess GitBook Content
-        # We use 'find' and 'sed' to replace GitBook-specific tags with standard HTML
-        # This prevents Jekyll from seeing 'Unknown tags'
+      - name: Preprocess GitBook Syntax
         run: |
-          # 1. Replace {% embed url="..." %} with a responsive iframe
-          find . -type f -name "*.md" -exec sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' {} +
+          # 1. Force-remove {% embed %} tags by converting them to standard HTML iframes
+          # This handles variations like {% embed ... %}, {%embed ...%}, and extra spaces.
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:20px 0;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g'
           
-          # 2. Convert line 2 (Description) into a blockquote/lead style for Primer
-          find . -type f -name "*.md" -exec sed -i '2s/^/> _/; 2s/$/ _ <br>/' {} +
+          # 2. Format GitBook description (line 2) to match Primer theme style
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i '2s/^/> _/; 2s/$/ _ <br>/'
 
-          # 3. Strip out other GitBook blocks like {% hint %} which also cause build errors
-          find . -type f -name "*.md" -exec sed -i 's/{% hint style="[^"]*" %}/<blockquote><strong>Note:<\/strong><br>/g' {} +
-          find . -type f -name "*.md" -exec sed -i 's/{% endhint %}/<\/blockquote>/g' {} +
+          # 3. Strip out GitBook Hints {% hint %} to prevent additional Liquid errors
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i 's/{% hint style="[^"]*" %}/<blockquote><strong>Note:<\/strong><br>/g'
+          find . -type f -name "*.md" -print0 | xargs -0 sed -i 's/{% endhint %}/<\/blockquote>/g'
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
