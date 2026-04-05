@@ -1,4 +1,5 @@
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+# Workflow for building and deploying a GitBook mirror to GitHub Pages
+name: Deploy GitBook Mirror to GitHub Pages
 
 on:
   push:
@@ -21,16 +22,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # --- NEW PRE-PROCESSING STEP START ---
-      - name: Fix GitBook Syntax (Video Embeds & Description)
+      - name: Preprocess GitBook Syntax
         run: |
-          # 1. Convert {% embed url="..." %} to HTML iframes
-          find . -name "*.md" -exec sed -i -E 's/\{% embed url="([^"]+)" %\}/<div class="video-container"><iframe src="\1" width="100%" height="400px" frameborder="0" allowfullscreen><\/iframe><\/div>/g' {} +
+          # 1. Force remove any existing 'embed' tags that Jekyll doesn't understand.
+          # The regex handles flexible spacing: {% embed url="..."  %}
+          # It replaces them with a responsive HTML5 iframe.
+          find . -type f -name "*.md" -exec sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin-bottom:20px;"><iframe src="\1" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen><\/iframe><\/div>/g' {} +
           
-          # 2. Convert GitBook description blocks to italicized blockquotes so Jekyll styles them
-          # This looks for the first paragraph after a title and styles it
-          find . -name "*.md" -exec sed -i '2s/^/> _/; 2s/$/ _/' {} +
-      # --- NEW PRE-PROCESSING STEP END ---
+          # 2. Format the GitBook description (line 2) to look like a 'lead' paragraph in Primer theme.
+          # It wraps the text in italicized blockquotes.
+          find . -type f -name "*.md" -exec sed -i '2s/^/> _/; 2s/$/ _ <br>/' {} +
+
+          # 3. Optional: Fix GitBook Hints (info/warning boxes) so they don't break the build
+          find . -type f -name "*.md" -exec sed -i 's/{% hint style="[^"]*" %}/<blockquote><strong>Note:<\/strong><br>/g' {} +
+          find . -type f -name "*.md" -exec sed -i 's/{% endhint %}/<\/blockquote>/g' {} +
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
