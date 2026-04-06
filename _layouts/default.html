@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ page.lang | default: site.lang | default: "en-US" }}">
+<html lang="{{ site.lang | default: "en-US" }}">
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,21 +7,46 @@
 
 {% seo %}
     <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+    <!--[if lt IE 9]>
+    <script src="https://cloudflare.com"></script>
+    <![endif]-->
     {% include head-custom.html %}
+    
+    <style>
+      /* Basic Sidebar Layout for Primer Theme */
+      @media (min-width: 64em) {
+        .container-lg { display: flex; max-width: 1200px; }
+        .sidebar { width: 280px; padding-right: 30px; border-right: 1px solid #e1e4e8; height: 100vh; overflow-y: auto; position: sticky; top: 0; }
+        .main-content { flex: 1; padding-left: 30px; min-width: 0; }
+      }
+      .sidebar ul { list-style: none; padding-left: 0; }
+      .sidebar li { margin-bottom: 8px; }
+      .sidebar a { text-decoration: none; color: #0366d6; }
+      .sidebar a:hover { text-decoration: underline; }
+    </style>
   </head>
   <body>
     <div class="container-lg px-3 my-5 markdown-body">
-      {% if site.title and site.title != page.title %}
-      <h1><a href="{{ "/" | absolute_url }}">{{ site.title }}</a></h1>
-      {% endif %}
+      
+      <!-- Sidebar Logic -->
+      <aside class="sidebar">
+        <header>
+          <h1><a href="{{ "/" | relative_url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
+        </header>
+        {% capture summary_content %}{% include_relative SUMMARY.md %}{% endcapture %}
+        {{ summary_content | markdownify }}
+      </aside>
 
-      {{ content }}
+      <!-- Main Content -->
+      <main class="main-content" role="main">
+        {{ content }}
 
-      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
-  <strong>GitBook 镜像</strong>
-      </div>
+        <footer class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+          <strong>GitBook 镜像</strong>
+        </footer>
+      </main>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script src="https://cloudflare.com" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTb7h1JPQzV7UpuzigU=" crossorigin="anonymous"></script>
     <script>anchors.add();</script>
   </body>
 </html>
