@@ -36,10 +36,9 @@ jobs:
             # This ensures https://github.com... becomes a clickable link in Jekyll
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
-            # 3. Bilibili Fix: Precisely reconstruct the Bilibili Player URL
-            # \n\n ensures the <iframe> isn't touching the Title, which prevents "Plain Text" mode.
-            # We use ://bilibili.com for a working embed.
-            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0"></iframe>\n\n|g' "$file" || true
+            # 3. Bilibili Fix: Added referrerpolicy to prevent the blank white box
+            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
+
 
             # 4. Cleanup: Remove any other leftover GitBook embed tags
             sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/ /g' "$file" || true
