@@ -44,9 +44,8 @@ jobs:
             # We wrap them in < > which is the standard Kramdown requirement for autolinking
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
-            # 4. Fix Bilibili Embed (Blank Box Fix)
-            # Restores the /player.html?bvid= structure and adds no-referrer policy
-            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
+            # Bilibili Fix: Added 'markdown="0"' and 'sandbox' to prevent Jekyll from stripping the tag
+            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:500px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer" sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts"></iframe>\n\n|g' "$file" || true
 
             # 5. Fix GitBook Description Styling
             # If the file starts with "description: ...", move it to an italicized subtitle
