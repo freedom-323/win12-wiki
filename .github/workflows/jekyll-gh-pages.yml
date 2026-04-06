@@ -28,23 +28,41 @@ jobs:
           for file in $(find . -type f -name "*.md"); do
             echo "Processing $file..."
 
-            # 1. Fix Bold & Entities: Replace &#x20; with real spaces
-            # This ensures **Bold** syntax isn't broken by hidden characters
+                  - name: Preprocess GitBook Syntax
+        run: |
+          IFS=$'\n'
+          # 1. Clean SUMMARY.md (Sidebar)
+          if [ -f "SUMMARY.md" ]; then
+            # Hide the "Table of contents" header line
+            sed -i '/# Table of contents/d' SUMMARY.md || true
+            # Fix README links to point to the index
+            sed -i 's/README.md/index.html/g' SUMMARY.md || true
+            # Convert all other .md links to .html for the sidebar
+            sed -i 's/\.md)/.html)/g' SUMMARY.md || true
+          fi
+
+          for file in $(find . -type f -name "*.md"); do
+            echo "Processing $file..."
+
+            # 2. Fix Bold & Entities
             sed -i 's/&#x20;/ /g' "$file" || true
 
-            # 2. Force Clickable Links: Wrap raw https links in < > 
-            # This ensures https://github.com... becomes a clickable link in Jekyll
+            # 3. Fix Raw Clickable Links (https://...)
+            # We wrap them in < > which is the standard Kramdown requirement for autolinking
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
-            # 3. Bilibili Fix: Added referrerpolicy to prevent the blank white box
+            # 4. Fix Bilibili Embed (Blank Box Fix)
+            # Restores the /player.html?bvid= structure and adds no-referrer policy
             sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
 
+            # 5. Fix GitBook Description Styling
+            # If the file starts with "description: ...", move it to an italicized subtitle
+            if head -n 5 "$file" | grep -q "description:"; then
+              sed -i 's/^description:[[:space:]]*\(.*\)/ \n\n> _\1_ \n\n/g' "$file" || true
+            fi
 
-            # 4. Cleanup: Remove any other leftover GitBook embed tags
+            # 6. Cleanup other tags
             sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/ /g' "$file" || true
-
-            # Convert internal sidebar links from .md to .html
-            sed -i 's/\.md)/.html)/g' SUMMARY.md || true
 
           done
 
