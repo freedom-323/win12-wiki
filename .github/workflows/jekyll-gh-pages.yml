@@ -23,13 +23,6 @@ jobs:
 
       - name: Preprocess GitBook Syntax
         run: |
-          # Use newline as separator to handle filenames with spaces
-          IFS=$'\n'
-          for file in $(find . -type f -name "*.md"); do
-            echo "Processing $file..."
-
-                  - name: Preprocess GitBook Syntax
-        run: |
           IFS=$'\n'
           # 1. Clean SUMMARY.md (Sidebar)
           if [ -f "SUMMARY.md" ]; then
