@@ -8,8 +8,11 @@ kramdown:
   # This tells Jekyll to treat HTML blocks as real HTML, not text
   parse_block_html: true
   syntax_highlighter: rouge
+  autolink: true
   commonmark:
     hard_wrap: false
+
+footer_text: "GitBook 镜像"
 
 # Build Settings
 exclude:
