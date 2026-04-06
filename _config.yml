@@ -1,0 +1,17 @@
+# Site Settings
+title: "Your Project Name"
+description: "A description of your project"
+remote_theme: pages-themes/primer # This ensures your theme stays active
+
+# Markdown Configuration
+kramdown:
+  # This tells Jekyll to treat HTML blocks as real HTML, not text
+  parse_block_html: true
+  syntax_highlighter: rouge
+
+# Build Settings
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - .github/workflows
