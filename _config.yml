@@ -1,6 +1,6 @@
 # Site Settings
-title: "Your Project Name"
-description: "A description of your project"
+title: "Windows 12 Wiki"
+description: ""
 remote_theme: pages-themes/primer # This ensures your theme stays active
 
 # Markdown Configuration
