@@ -12,6 +12,13 @@ kramdown:
   commonmark:
     hard_wrap: false
 
+defaults:
+  - scope:
+      path: "" # empty string means all files in the project
+      type: "pages"
+    values:
+      layout: "default"
+      
 footer_text: "GitBook 镜像"
 plugins:
   - jekyll-remote-theme
