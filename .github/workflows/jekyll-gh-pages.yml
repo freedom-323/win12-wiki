@@ -1,18 +1,12 @@
-name: Deploy GitBook Mirror to GitHub Pages
-
+name: Deploy GitBook Mirror
 on:
   push:
     branches: ["main"]
-  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   build:
@@ -23,29 +17,14 @@ jobs:
 
       - name: Preprocess GitBook Syntax
         run: |
-          IFS=$'\n'
-          for file in $(find . -type f -name "*.md"); do
-            echo "Processing $file..."
-
-            # 1. Fix Bold/Spaces: Replace &#x20; with real spaces
-            sed -i 's/&#x20;/ /g' "$file" || true
-
-            # 2. Bilibili Fix: Convert to iframe AND ensure it starts at the beginning of the line (no spaces)
-            sed -i -E 's/^[[:space:]]*\{%[[:space:]]*embed url=".*video\/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}/<iframe src="https:\/\/player.bilibili.com\/player.html?bvid=\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="450"><\/iframe>/g' "$file" || true
-
-            # 3. Description Styling: Using HTML <em> so it doesn't break Jekyll's parser
-            if [[ "$file" != *"SUMMARY.md"* ]]; then
-               # Wrap line 2 in <em> if it starts with text
-               sed -i '2{/^[A-Za-z0-9]/s/^/<em>/; /^[A-Za-z0-9]/s/$/<\/em><br>/}' "$file" || true
-            fi
-
-            # 4. Remove any "GitBook Embed Removed" comments that might clutter the UI
-            sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/ /g' "$file" || true
-
-          done
+          # Fix Video Embeds
+          find . -name "*.md" -exec sed -i -E 's/\{% embed url="([^"]+)" %\}/<iframe src="\1" width="100%" height="400px" frameborder="0" allowfullscreen><\/iframe>/g' {} +
+          # Optional: Fix GitBook Hints/Alerts
+          find . -name "*.md" -exec sed -i 's/{% hint style="info" %}/<div class="flash">/g' {} +
+          find . -name "*.md" -exec sed -i 's/{% endhint %}/<\/div>/g' {} +
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v4
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
@@ -57,12 +36,10 @@ jobs:
         uses: actions/upload-pages-artifact@v3
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
