@@ -43,6 +43,10 @@ jobs:
 
             # 4. Cleanup: Remove any other leftover GitBook embed tags
             sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/ /g' "$file" || true
+
+            # Convert internal sidebar links from .md to .html
+            sed -i 's/\.md)/.html)/g' SUMMARY.md || true
+
           done
 
       - name: Setup Pages
