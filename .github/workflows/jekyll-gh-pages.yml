@@ -27,26 +27,21 @@ jobs:
           for file in $(find . -type f -name "*.md"); do
             echo "Processing $file..."
 
-            # 1. Fix Bold/Spaces: Replace &#x20; with real spaces so **text** works
+            # 1. Fix Bold/Spaces: Replace &#x20; with real spaces
             sed -i 's/&#x20;/ /g' "$file" || true
 
-            # 2. Bilibili Specific Fix: Convert to the Bilibili Player URL
-            # Note: We use https: explicitly to ensure it loads everywhere
-            sed -i -E 's/\{%[[:space:]]*embed url=".*video\/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}/<iframe src="https:\/\/player.bilibili.com\/player.html?bvid=\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="450"><\/iframe>/g' "$file" || true
+            # 2. Bilibili Fix: Convert to iframe AND ensure it starts at the beginning of the line (no spaces)
+            sed -i -E 's/^[[:space:]]*\{%[[:space:]]*embed url=".*video\/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}/<iframe src="https:\/\/player.bilibili.com\/player.html?bvid=\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="450"><\/iframe>/g' "$file" || true
 
-            # 3. Fallback for other embeds
-            sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<iframe src="\1" width="100%" height="450" frameborder="0" allowfullscreen><\/iframe>/g' "$file" || true
-
-            # 4. Description Fix: Convert GitBook's line 2 description into a Jekyll-friendly subtitle
-            # We wrap it in <i> tags to make it look like a description without breaking Markdown
+            # 3. Description Styling: Using HTML <em> so it doesn't break Jekyll's parser
             if [[ "$file" != *"SUMMARY.md"* ]]; then
-               # This adds <i> </i> around line 2 if it's text
-               sed -i '2{/^[A-Za-z0-9]/s/^/<i>/; /^[A-Za-z0-9]/s/$/<\/i><br>/}' "$file" || true
+               # Wrap line 2 in <em> if it starts with text
+               sed -i '2{/^[A-Za-z0-9]/s/^/<em>/; /^[A-Za-z0-9]/s/$/<\/em><br>/}' "$file" || true
             fi
 
-            # 5. Hints: Convert to standard blockquotes
-            sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g' "$file" || true
-            sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g' "$file" || true
+            # 4. Remove any "GitBook Embed Removed" comments that might clutter the UI
+            sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/ /g' "$file" || true
+
           done
 
       - name: Setup Pages
