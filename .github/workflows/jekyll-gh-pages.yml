@@ -1,3 +1,66 @@
-plugins:
-  - jekyll-remote-theme
-  - jekyll-seo-tag
+name: Deploy GitBook Mirror to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preprocess GitBook Syntax
+        run: |
+          IFS=$'\n'
+          for file in $(find . -type f -name "*.md"); do
+            echo "Processing $file..."
+
+            # 1. Fix Bold & spaces (replace &#x20; with real space)
+            sed -i 's/&#x20;/ /g' "$file" || true
+
+            # 2. Force Auto-links: Wrap raw https links in < > so they are clickable
+            sed -i -E 's/([^<"'\''@])(https?:\/\/[a-zA-Z0-9\.\/\-_?=&%#]+)/\1<\2>/g' "$file" || true
+
+            # 3. Bilibili Fix: Convert to player URL and isolate with newlines
+            sed -i -E 's/\{%[[:space:]]*embed url=".*video\/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}/\n\n<iframe src="https:\/\/://bilibili.com\/player.html?bvid=\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;"><\/iframe>\n\n/g' "$file" || true
+
+            # 4. Cleanup other GitBook tags to prevent Jekyll errors
+            sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/ /g' "$file" || true
+            sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote>/g' "$file" || true
+            sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g' "$file" || true
+          done
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
