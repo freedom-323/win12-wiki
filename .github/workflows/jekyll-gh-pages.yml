@@ -26,22 +26,22 @@ jobs:
           IFS=$'\n'
           for file in $(find . -type f -name "*.md"); do
             echo "Processing $file..."
-            
-            # 1. Fix special Bold / Space entities (&#x20;)
+
+            # 1. Fix special space entities (&#x20;) so **bold** works
             sed -i 's/&#x20;/ /g' "$file" || true
 
-            # 2. Convert {% embed url="..." %} to <iframe>
-            # We do this BEFORE the description logic so it doesn't get messed up
-            sed -i -E 's/\{%[[:space:]]*embed[[:space:]]+url=["'\'']([^"'\'']+)["'\''][[:space:]]*%\}/<iframe src="\1" width="100%" height="400" frameborder="0" allowfullscreen><\/iframe>/g' "$file" || true
-            
-            # 3. Format line 2 as description ONLY if it's NOT SUMMARY.md and NOT a video/tag
-            if [[ "$file" != *"SUMMARY.md"* ]]; then
-               # Only apply blockquote if the line actually contains text (not a tag or empty)
-               sed -i '2{/^[^<{%]/s/^/> _/; /^[^<{%]/s/$/ _ <br>/}' "$file" || true
-            fi
+            # 2. Convert Bilibili Embeds specifically
+            # GitBook gives: BV1zBfnYyE8P. Bilibili needs: ://bilibili.com
+            sed -i -E 's/\{%[[:space:]]*embed url=".*video\/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}/<iframe src="\/\/player.bilibili.com\/player.html?bvid=\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="450"><\/iframe>/g' "$file" || true
 
-            # 4. Emergency cleanup for any missed 'embed' tags
-            sed -i -E 's/\{%[[:space:]]*embed[^%]*%\}/<!-- GitBook Embed Removed -->/g' "$file" || true
+            # 3. Fallback for other embeds (YouTube, etc.)
+            sed -i -E 's/\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}/<iframe src="\1" width="100%" height="450" frameborder="0" allowfullscreen><\/iframe>/g' "$file" || true
+
+            # 4. Description Fix: ONLY run if NOT SUMMARY.md and line 2 isn't empty/HTML
+            if [[ "$file" != *"SUMMARY.md"* ]]; then
+               # Only add blockquote styling if line 2 starts with a letter/digit (not < or #)
+               sed -i '2{/^[a-zA-Z0-9]/s/^/> _/; /^[a-zA-Z0-9]/s/$/ _ <br>/}' "$file" || true
+            fi
 
             # 5. Convert GitBook {% hint %} to blockquotes
             sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g' "$file" || true
