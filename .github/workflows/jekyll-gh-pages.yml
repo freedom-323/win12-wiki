@@ -21,15 +21,17 @@ jobs:
         run: |
           IFS=$'\n'
           for file in $(find . -type f -name "*.md"); do
+            echo "Processing $file..."
+
             # 1. Fix Bold & Entities
             sed -i 's/&#x20;/ /g' "$file" || true
 
             # 2. Force Clickable Links: Wrap raw https links in < > 
-            # This turns raw text URLs into real <a> links
+            # This ensures https://github.com/... becomes a clickable <a> tag
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
-            # 3. Bilibili Fix: Restore the full player URL correctly
-            # We use | as a delimiter to avoid clashing with / in the URL
+            # 3. Bilibili Fix: Precisely reconstruct the Bilibili Player URL
+            # We target the GitBook embed and replace it with the full Bilibili iframe code
             sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0"></iframe>\n\n|g' "$file" || true
 
             # 4. Cleanup other leftover tags
@@ -38,11 +40,13 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./
           destination: ./_site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
