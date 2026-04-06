@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,6 +24,7 @@ jobs:
       - name: Preprocess GitBook Syntax
         run: |
           IFS=$'\n'
+          # 1. Clean SUMMARY.md (Sidebar)
           if [ -f "SUMMARY.md" ]; then
             sed -i '/# Table of contents/d' SUMMARY.md || true
             sed -i 's/README.md/index.html/g' SUMMARY.md || true
@@ -27,19 +32,21 @@ jobs:
           fi
 
           for file in $(find . -type f -name "*.md"); do
-            # Fix Bold & Spaces
+            echo "Processing $file..."
+
+            # A. Fix Bold & Entities
             sed -i 's/&#x20;/ /g' "$file" || true
 
-            # Force Clickable Links
+            # B. Force Clickable Links (Wrap raw https in < >)
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
-            # Bilibili Embed FIX
-            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0\&isOutside=true" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
+            # C. Bilibili Fix: Reconstruct using literal ampersands (\&)
+            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\&aid=113882735711341\&bvid=\1\&cid=28052620619\&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
 
-            # Non-Bilibili Embeds
+            # D. General Embed Support
             sed -i -E 's|\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}|\n\n<iframe src="\1" style="width:100%; height:480px; display:block; margin:20px 0;" frameborder="0" allowfullscreen="true" markdown="0"></iframe>\n\n|g' "$file" || true
 
-            # Description Styling
+            # E. Styling Fixes (Description)
             if head -n 5 "$file" | grep -q "^description:"; then
               sed -i 's/^description:[[:space:]]*\(.*\)/ \n\n> _\1_ \n\n/g' "$file" || true
             fi
