@@ -8,6 +8,8 @@ kramdown:
   # This tells Jekyll to treat HTML blocks as real HTML, not text
   parse_block_html: true
   syntax_highlighter: rouge
+  commonmark:
+    hard_wrap: false
 
 # Build Settings
 exclude:
