@@ -23,46 +23,36 @@ jobs:
 
       - name: Preprocess GitBook Syntax
         run: |
-          # Use newline separator to handle filenames with spaces
           IFS=$'\n'
           
-          # 1. Clean SUMMARY.md (Sidebar Logic)
+          # 1. Clean Sidebar (SUMMARY.md)
           if [ -f "SUMMARY.md" ]; then
-            echo "Processing SUMMARY.md..."
-            # Remove the GitBook-specific header
             sed -i '/# Table of contents/d' SUMMARY.md || true
-            # Map README.md to index.html (Jekyll's default homepage)
             sed -i 's/README.md/index.html/g' SUMMARY.md || true
-            # Convert all other internal .md links to .html
             sed -i 's/\.md)/.html)/g' SUMMARY.md || true
           fi
 
-          # 2. Process all Markdown files for Content
           for file in $(find . -type f -name "*.md"); do
             echo "Processing $file..."
 
-            # A. Fix Bold & Entities: Replace &#x20; with real spaces
+            # A. Fix Bold & Entities
             sed -i 's/&#x20;/ /g' "$file" || true
 
-            # B. Force Clickable Links: Wrap raw https links in < > 
-            # This ensures they are clickable and not treated as plain text
+            # B. Force Clickable Links (Wrap raw https in < >)
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
-            # C. Bilibili Specific Embed Fix
-            # Reconstructs the URL to use the Bilibili player and adds no-referrer
-            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="https://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
+            # C. THE FIX: Correct Bilibili Embed URL
+            # This reconstructs the URL precisely as //://bilibili.com...
+            # Note: aid/cid are optional; bvid is enough for most embeds.
+            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="//://bilibili.com\1\&page=1\&high_quality=1\&danmaku=0\&isOutside=true" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
 
-            # D. General Embed Support (Non-Bilibili / YouTube / etc.)
-            # Catches remaining {% embed %} tags and turns them into standard iframes
+            # D. Support for non-Bilibili /embed tags (YouTube, Vimeo, etc.)
             sed -i -E 's|\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}|\n\n<iframe src="\1" style="width:100%; height:480px; display:block; margin:20px 0;" frameborder="0" allowfullscreen="true" markdown="0"></iframe>\n\n|g' "$file" || true
 
-            # E. Fix GitBook Description Styling
-            # Converts the "description: text" line into an italicized blockquote
+            # E. Styling Fixes (Description & Hints)
             if head -n 5 "$file" | grep -q "^description:"; then
               sed -i 's/^description:[[:space:]]*\(.*\)/ \n\n> _\1_ \n\n/g' "$file" || true
             fi
-
-            # F. Fix GitBook Hints/Alerts
             sed -i 's/\{%[[:space:]]*hint[^%]*%\}/<blockquote><strong>Note:<\/strong><br>/g' "$file" || true
             sed -i 's/\{%[[:space:]]*endhint[[:space:]]*%\}/<\/blockquote>/g' "$file" || true
           done
