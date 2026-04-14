@@ -41,16 +41,20 @@ jobs:
             sed -i -E 's|([^<"'\''@])(https?://[a-zA-Z0-9\.\/\-_?=&%#]+)|\1<\2>|g' "$file" || true
 
             # C. THE DEFINITIVE BILIBILI FIX:
-            # We use | as the delimiter so the slashes / in the URL are safe.
-            # We use \& to escape the ampersands so sed treats them as literal characters.
-            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="//player.bilibili.com/player.html?isOutside=true\&aid=113882735711341\&bvid=\1\&cid=28052620619\&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
+            sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="//://bilibili.com\&aid=113882735711341\&bvid=\1\&cid=28052620619\&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
 
             # D. Support for other embeds (YouTube, etc.)
             sed -i -E 's|\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}|\n\n<iframe src="\1" style="width:100%; height:480px; display:block; margin:20px 0;" frameborder="0" allowfullscreen="true" markdown="0"></iframe>\n\n|g' "$file" || true
 
-            # E. Styling Fixes (Description)
-            if head -n 5 "$file" | grep -q "^description:"; then
-              sed -i 's/^description:[[:space:]]*\(.*\)/ \n\n> _\1_ \n\n/g' "$file" || true
+            # E. Styling Fixes (Description) & Frontmatter Removal
+            # This captures the description text, removes the problematic YAML block,
+            # and re-inserts the description as a blockquote below the title.
+            if grep -q "^description:" "$file"; then
+              DESC=$(sed -n 's/^description: \(.*\)/\1/p' "$file")
+              # Remove the entire YAML frontmatter block (everything between the first pair of ---)
+              sed -i '1{/^---$/{:a;N;/^---$/!ba;d}}' "$file"
+              # Insert the description as a blockquote after the H1 title (# )
+              sed -i "/^# /a \n> $DESC" "$file" || true
             fi
           done
 
