@@ -50,8 +50,6 @@ jobs:
               DESC=$(sed -n 's/^description: \(.*\)/\1/p' "$file")
               # Remove the entire YAML frontmatter block (everything between the first pair of ---)
               sed -i '1{/^---$/{:a;N;/^---$/!ba;d}}' "$file"
-              # Insert the description as a blockquote after the H1 title (# )
-              sed -i "/^# /a \n> $DESC" "$file" || true
             fi
           done
 
