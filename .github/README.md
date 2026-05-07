@@ -8,6 +8,7 @@ Windows 12 网页版 Wiki
 
 ### 有关项目结构
 本 Wiki 项目始于2026年4月，目的是取代主仓库中原有的 Wiki 页。
-本 Wiki 原于 [GitBook](https://www.gitbook.com) 开源，惟 GitBook 无法在国内成功访问，因此我们使用 GitBook 提供的自动同步功能开设了本仓库，旨在满足国内用户的需求。本项目通过同步 GitBook 源文件，再使用自行客制化后的 `Jekyll` 工作流部署 `Pages` ，从而实现建立国内开源镜像站点的效果。 (这也是为啥有另一份 README 文件)
+<br>本 Wiki 原于 [GitBook](https://www.gitbook.com) 开源，惟 GitBook 无法在国内成功访问，因此我们使用 GitBook 提供的自动同步功能开设了本仓库，旨在满足国内用户的需求。本项目通过同步 GitBook 源文件，再使用自行客制化后的 `Jekyll` 工作流部署 `Pages` ，从而实现建立国内开源镜像站点的效果。</br>(这也是为啥有另一份 README 文件)
 
 ### 有关贡献流程
+詳見 [贡献指南](CONTRIBUTING.md) 。
