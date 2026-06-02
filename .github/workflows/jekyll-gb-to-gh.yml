@@ -1,0 +1,104 @@
+name: Deploy GitBook Mirror to GitHub Pages
+
+on:
+  workflow_run:
+    workflows: ["Format Code"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preprocess GitBook Syntax
+        run: |
+          # 1. Clean SUMMARY.md (Sidebar)
+          if [ -f "SUMMARY.md" ]; then
+              sed -i '/# Table of contents/d' SUMMARY.md || true
+              sed -i 's/README.md/index.html/g' SUMMARY.md || true
+              sed -i 's/\.md)/.html)/g' SUMMARY.md || true
+          fi
+
+          # 2. Process all Markdown files safely
+          find . -type f -name "*.md" -print0 | while IFS= read -r -d '' file; do
+              echo "Processing $file..."
+              
+              # A. Fix Bold & Entities
+              sed -i 's/&#x20;/ /g' "$file" || true
+
+              # B. Bilibili fix: (Do NOT modify it)
+              sed -i -E 's|\{%[[:space:]]*embed url=".*video/(BV[a-zA-Z0-9]+).*"[[:space:]]*%\}|\n\n<iframe src="//player.bilibili.com/player.html?isOutside=true\&aid=113882735711341\&bvid=\1\&cid=28052620619\&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width:100%; height:480px; display:block; margin:20px 0;" markdown="0" referrerpolicy="no-referrer"></iframe>\n\n|g' "$file" || true
+
+              # C. Support for other embeds (YouTube, etc.)
+              sed -i -E 's|\{%[[:space:]]*embed url="([^"]+)"[[:space:]]*%\}|\n\n<iframe src="\1" style="width:100%; height:480px; display:block; margin:20px 0;" frameborder="0" allowfullscreen="true" markdown="0"></iframe>\n\n|g' "$file" || true
+
+              # D. Styling Fixes (Description) & Frontmatter Removal
+              if grep -q "^description:" "$file"; then
+                  # Extract description safely, removing trailing carriage returns
+                  DESC=$(sed -n 's/^description:[[:space:]]*\(.*\)/\1/p' "$file" | head -n 1 | tr -d '\r')
+                  
+                  # Robust Frontmatter Removal using an explicit address block range (1 to the 2nd --- match)
+                  sed -i '1,/^---$/ { /^---$/d; d; }' "$file"
+                  
+                  # Insert description block safely right after the first H1 tag without text duplication
+                  sed -i "0,/^# /{s|^\(# .*\)|\1\n\n> $DESC|}" "$file"
+              fi
+          done
+
+      - name: Generate XML Sitemap
+        run: |
+          SITE_URL="https://github.io"
+          echo "Generating sitemap.xml for $SITE_URL..."
+          
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > sitemap.xml
+          echo '<urlset xmlns="http://sitemaps.org">' >> sitemap.xml
+          
+          find . -type f -name "*.md" ! -name "README.md" ! -name "SUMMARY.md" ! -name "CONTRIBUTING.md" ! -path "*/.*/*" -print0 | while IFS= read -r -d '' file; do
+              PATH_URL=$(echo "$file" | sed 's|^\./||' | sed 's|\.md$|.html|')
+              if [ "$PATH_URL" = "index.html" ]; then
+                  echo "  <url><loc>${SITE_URL}/</loc></url>" >> sitemap.xml
+              else
+                  echo "  <url><loc>${SITE_URL}/${PATH_URL}</loc></url>" >> sitemap.xml
+              fi
+          done
+          
+          echo '</urlset>' >> sitemap.xml
+          echo "Sitemap.xml generated in workspace root."
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+              
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

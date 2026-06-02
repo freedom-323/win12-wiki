@@ -1,0 +1,34 @@
+name: Format Code
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Run Autocorrect (Fix Mode)
+        uses: huacnlee/autocorrect-action@v2
+        with:
+          # Overrides default '--lint' mode to automatically rewrite files
+          args: --fix
+
+      - name: Run Prettier
+        uses: creyD/prettier_action@v4.3
+        with:
+          dry: false
+          prettier_options: --write **/*.{md,yaml,css,js}
+          only_changed: false
+          commit_message: "Style: Auto-format @ Prettier & Autocorrect"

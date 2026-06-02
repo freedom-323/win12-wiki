@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "zh-cn" }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer" />
+    <title>Windows 12 网页版 Wiki 📋 | 官方开源项目介绍与说明文件</title>
+    <meta name="description" content="欢迎来到 Windows 12 网页版官方 Wiki！本项目由学生开发者使用 HTML、CSS 和 JS 打造，在浏览器中高度模拟 Windows 12 UI 介面与流畅动画。立即打开网页体验未来作业系统的互动设计！">
+    <meta name="keywords" content="Windows 12 网页版, Windows 12 網頁版, win12, win12-wiki">
+    <meta name="google-site-verification" content="zWIgl9z0a73W6dN_yV96iykHzogsa4Q1RhG90j1TX1o" />
+    <link rel="icon" type="image/svg+xml" href="/win12-wiki/favicon.svg">
+
+{% seo %}
+    <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+    <!--[if lt IE 9]>
+    <script src="https://cloudflare.com"></script>
+    <![endif]-->
+    {% include head-custom.html %}
+
+    <style>
+      iframe {
+        min-height: 500px !important;
+        width: 100% !important;
+        display: block !important;
+        visibility: visible !important;
+      }
+    </style>
+    
+    <style>
+      /* Basic Sidebar Layout for Primer Theme */
+      @media (min-width: 64em) {
+        .container-lg { display: flex; max-width: 1200px; }
+        .sidebar { width: 280px; padding-right: 30px; border-right: 1px solid #e1e4e8; height: 100vh; overflow-y: auto; position: sticky; top: 0; }
+        .main-content { flex: 1; padding-left: 30px; min-width: 0; }
+      }
+      .sidebar ul { list-style: none; padding-left: 0; }
+      .sidebar li { margin-bottom: 8px; }
+      .sidebar a { text-decoration: none; color: #0366d6; }
+      .sidebar a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <!-- Sidebar Logic -->
+      <aside class="sidebar">
+        <header>
+          <h1><a href="{{ "/" | relative_url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
+        </header>
+        {% capture summary_content %}{% include_relative SUMMARY.md %}{% endcapture %}
+        {{ summary_content | markdownify }}
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content" role="main">
+        {{ content }}
+
+        <footer class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+          <strong>GitBook 镜像</strong>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cloudflare.com" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTb7h1JPQzV7UpuzigU=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>
