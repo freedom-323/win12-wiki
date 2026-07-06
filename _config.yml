@@ -1,6 +1,6 @@
 # Site Settings
-title: "Windows 12 网页版 Wiki"
-description: "欢迎来到 Windows 12 网页版官方 Wiki！本项目由学生开发者使用 HTML、CSS 和 JS 打造，在浏览器中高度模拟 Windows 12 UI 介面与流畅动画。立即打开网页体验未来作业系统的互动设计！"
+title: "Win12 Online Wiki"
+description: "欢迎来到 Win12 网页版官方 Wiki！本项目由学生开发者使用 HTML、CSS 和 JS 打造，在浏览器中高度模拟 Win12 UI 介面与流畅动画。立即打开网页体验未来作业系统的互动设计！"
 remote_theme: pages-themes/primer # This ensures your theme stays active
 
 # Markdown Configuration
