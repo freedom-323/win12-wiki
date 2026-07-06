@@ -3,7 +3,7 @@
 我们提供了多个供用户和贡献者们交流的交流群：
 
 - [Nerimity](https://nerimity.com/i/w2lvf) （🌟）
-- [Microsoft Teams](https://teams.live.com/l/invite/FEA0yrNkE_bAn-ddwI) （不太活跃）
+- [Microsoft Teams](https://teams.live.com/l/invite/FEA0yrNkE_bAn-ddwI)  （不太活跃）
 - [Tailchat](https://nightly.paw.msgbyte.com/invite/PRdJ34zo) （实验性质，不活跃）
 
 另外，你也可以到我们的 GitHub Discussions 和布告板看看：
