@@ -29,17 +29,6 @@ jobs:
         with:
           mdbook-version: 'latest'
 
-      - name: Setup Ruby for Jekyll
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundle-cache: true
-
-      - name: Build Jekyll Site
-        run: |
-          bundle install
-          bundle exec jekyll build --destination ./_site
-
       - name: Build mdBook Into Subpath
         run: |
           mdbook build -d ./_site/docs 
