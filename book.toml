@@ -7,4 +7,3 @@ build-dir = "../docs"
 
 [output.html]
 site-url = "/docs/" 
-favicon = "favicon.svg"
