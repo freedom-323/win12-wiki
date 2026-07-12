@@ -1,5 +1,5 @@
 *.md linguist-documentation=false
 *.md linguist-detectable=true
 *.yml linguist-detectable=true
-*.toml linguist-detectable=true
 *.toml linguist-language=TOML
+*.hbs linguist-language=HTML
