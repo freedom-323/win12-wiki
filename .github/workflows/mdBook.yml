@@ -1,12 +1,9 @@
-name: Deploy mdBook
-
+name: Build and Deploy mdBook
 on:
   workflow_run:
     workflows: ["Format Code"]
     types:
       - completed
-    branches:
-      - main
 
 permissions:
   contents: read
@@ -18,8 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  build-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -30,20 +26,84 @@ jobs:
 
       - name: Install mdBook
         run: |
-          mkdir -p ~/.local/bin
-          curl -sSL https://github.com | tar -xz -C ~/.local/bin
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          curl -sSL https://github.com | tar -xz
+          mv mdbook /usr/local/bin/
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      - name: Setup Ruby for Jekyll
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundle-cache: true
 
-      - name: Build mdBook
-        run: mdbook build
+      - name: Build Jekyll Site
+        run: |
+          bundle install
+          bundle exec jekyll build --destination ./_site
 
-      - name: Upload artifact
+      - name: Build mdBook Into Subpath
+        run: |
+          mdbook build -d ./_site/docs 
+          # Matches the folder name you want in your URL (e.g., ://domain.com)
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Combined Staging Directory
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './book'
+          path: './_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Install mdBook
+        run: |
+          curl -sSL https://github.com | tar -xz
+          mv mdbook /usr/local/bin/
+
+      - name: Setup Ruby for Jekyll
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundle-cache: true
+
+      - name: Build Jekyll Site
+        run: |
+          bundle install
+          bundle exec jekyll build --destination ./_site
+
+      - name: Build mdBook Into Subpath
+        run: |
+          mdbook build -d ./_site/docs 
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Combined Staging Directory
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
