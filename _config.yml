@@ -41,3 +41,4 @@ include:
 
 baseurl: "/win12-wiki"
 url: "https://freedom-323.github.io"
+keep_files: ["docs"]
