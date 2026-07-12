@@ -1,0 +1,9 @@
+[book]
+title = "Win12 Online Wiki 📋 | 官方开源项目介绍与说明文件"
+src = "."
+
+[build]
+build-dir = "../docs"
+
+[output.html]
+site-url = "/docs/" 
