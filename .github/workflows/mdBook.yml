@@ -24,10 +24,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install mdBook
-        run: |
-          curl -sSL https://github.com | tar -xz
-          mv mdbook /usr/local/bin/
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
 
       - name: Setup Ruby for Jekyll
         uses: ruby/setup-ruby@v1
