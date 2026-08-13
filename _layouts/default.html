@@ -9,7 +9,7 @@
     <meta name="description" content="欢迎来到 Win12 Online 官方 Wiki！本项目由学生开发者使用 HTML、CSS 和 JS 打造，在浏览器中高度模拟 Win12 UI 介面与流畅动画。立即打开网页体验未来作业系统的互动设计！">
     <meta name="keywords" content="Win12 Online, Win12 OL, win12, win12-wiki">
     <meta name="google-site-verification" content="zWIgl9z0a73W6dN_yV96iykHzogsa4Q1RhG90j1TX1o" />
-    <link rel="icon" type="image/svg+xml" href="/win12-wiki/favicon.svg">
+    <link class="icon" type="image/svg+xml" href="/win12-wiki/favicon.svg">
 
 {% seo %}
     <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
@@ -26,7 +26,7 @@
         visibility: visible !important;
       }
     </style>
-    
+
     <style>
       /* Basic Sidebar Layout for Primer Theme */
       @media (min-width: 64em) {
@@ -41,19 +41,24 @@
     </style>
   </head>
   <body>
-    <div class="container-lg px-3 my-5 markdown-body">
-      
+    <!-- 修正：這裡移除了 markdown-body，避免全域樣式衝突 -->
+    <div class="container-lg px-3 my-5">
+
       <!-- Sidebar Logic -->
       <aside class="sidebar">
         <header>
           <h1><a href="{{ "/" | relative_url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
         </header>
-        {% capture summary_content %}{% include_relative SUMMARY.md %}{% endcapture %}
-        {{ summary_content | markdownify }}
+        <!-- 修正：用獨立的 div 包裹，確保側邊欄 Markdown 渲染完全隔離 -->
+        <div class="sidebar-links">
+          {% capture summary_content %}{% include_relative SUMMARY.md %}{% endcapture %}
+          {{ summary_content | markdownify }}
+        </div>
       </aside>
 
       <!-- Main Content -->
-      <main class="main-content" role="main">
+      <!-- 修正：將 markdown-body 放到這裡，只對主內文進行 GitHub 樣式渲染 -->
+      <main class="main-content markdown-body" role="main">
         {{ content }}
 
         <footer class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
