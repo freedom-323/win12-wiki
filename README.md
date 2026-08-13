@@ -12,8 +12,8 @@ win12-online/win12 是一个由学生开发者使用 HTML、CSS 和 JavaScript �
 
 **这是免费开源的吗？**
 
-是的，任何标榜付费版或含有广告的 Win12 系统与我们无关。
-​
+是的，任何标榜付费版或含有广告的 Win12 系统与我们无关。/
+​/
 Win12 的源代码公开于 [win12-online/win12](github.com/win12-online/win12) 存储库。
 
 **我有权搬运这个项目吗？**
