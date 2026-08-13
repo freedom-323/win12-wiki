@@ -12,8 +12,10 @@ win12-online/win12 是一个由学生开发者使用 HTML、CSS 和 JavaScript �
 
 **这是免费开源的吗？**
 
-是的，任何标榜付费版或含有广告的 Win12 系统与我们无关。\
-​\
+是的，任何标榜付费版或含有广告的 Win12 系统与我们无关。
+​
+Win12 的源代码公开于 [win12-online/win12](github.com/win12-online/win12) 存储库。
+
 **我有权搬运这个项目吗？**
 
 ​本项目使用 EPL-2.0 许可证，任何转载、分享、引用、复制的行为均受到许可证保护和规管。
@@ -22,4 +24,4 @@ win12-online/win12 是一个由学生开发者使用 HTML、CSS 和 JavaScript �
 
 你可以在我们的 GitHub 专页上简单 Star 一下，向我们捐款，或加入这个项目的开发。
 
-#### 此 Wiki 采用 CC BY-NC-SA 4.0 授权哦～
+#### 本 Wiki 采用 CC BY-NC-SA 4.0 授权哦～
