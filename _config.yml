@@ -4,6 +4,7 @@ description: "欢迎来到 Win12 网页版官方 Wiki！本项目由学生开发
 remote_theme: pages-themes/primer # This ensures your theme stays active
 
 # Markdown Configuration
+markdown: kramdown
 kramdown:
   # This tells Jekyll to treat HTML blocks as real HTML, not text
   parse_block_html: true
