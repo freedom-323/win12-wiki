@@ -28,15 +28,18 @@ jobs:
           find . -type f -name "*.md" -print0 | while IFS= read -r -d '' file; do
             echo Processing $file...
             
-            # A. Fix Bold & Entities (僅清除粗體星號內側的特殊空格與常規空格)
+            # A. Fix Bold & Entities
             sed -i -E 's/\*\*([[:space:]]|&#x20;)+/\*\*/g' "$file" || true
             sed -i -E 's/([[:space:]]|&#x20;)+\*\*/\*\*/g' "$file" || true
 
-            # B. Bilibili fix: (Do NOT modify it)
-            sed -i -E 's|\{%[[:space:]]*embed url= .*video/(BV[a-zA-Z0-9]+).* [[:space:]]*%\}|\n\n<iframe src= //://bilibili.com\&aid=113882735711341\&bvid=\1\&cid=28052620619\&p=1 scrolling= no border= 0 frameborder= no framespacing= 0 allowfullscreen= true style= width:100%; height:480px; display:block; margin:20px 0; markdown= 0 referrerpolicy= no-referrer ></iframe>\n\n|g' "$file" || true
+            # B. Bilibili fix: 支持帶有雙引號、單引號或無引號的 url 格式
+            sed -i -E 's|\{%[[:space:]]*embed url=[[:space:]]*"?"?.*video/(BV[a-zA-Z0-9]+).*""?[[:space:]]*%\}|\n\n<iframe src= //://bilibili.com\&aid=113882735711341\&bvid=\1\&cid=28052620619\&p=1 scrolling= no border= 0 frameborder= no framespacing= 0 allowfullscreen= true style= width:100%; height:480px; display:block; margin:20px 0; markdown= 0 referrerpolicy= no-referrer ></iframe>\n\n|g' "$file" || true
 
-            # C. Support for other embeds (YouTube, etc.)
-            sed -i -E 's|\{%[[:space:]]*embed url= ([^ ]+) [[:space:]]*%\}|\n\n<iframe src= \1 style= width:100%; height:480px; display:block; margin:20px 0; frameborder= 0 allowfullscreen= true markdown= 0 ></iframe>\n\n|g' "$file" || true
+            # C. Support for other embeds (YouTube, etc.): 支援帶有雙引號、單引號或無引號的通用 url 格式
+            sed -i -E 's|\{%[[:space:]]*embed url=[[:space:]]*"?'\''?([^[:space:]"'\'']+)"?'\''?[[:space:]]*%\}|\n\n<iframe src= \1 style= width:100%; height:480px; display:block; margin:20px 0; frameborder= 0 allowfullscreen= true markdown= 0 ></iframe>\n\n|g' "$file" || true
+
+            # 安全防線：將任何殘留、未成功轉換的 {% embed ... %} 標籤替換為標準 HTML 註解，防止 Jekyll 拋出 Unknown tag 錯誤
+            sed -i -E 's|\{%[[:space:]]*embed[[:space:]]+[^%]*%\}|<!-- GitBook Embed Tag Removed -->|g' "$file" || true
 
             # D. Styling Fixes (Description) & Frontmatter Removal
             if grep -q ^description: "$file" ; then
