@@ -8,6 +8,7 @@ markdown: kramdown
 kramdown:
   # This tells Jekyll to treat HTML blocks as real HTML, not text
   parse_block_html: true
+  input: GFM
   syntax_highlighter: rouge
   autolink: true
   commonmark:
