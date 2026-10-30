@@ -8,4 +8,4 @@ https://github.com/win12-online/win12
 
 **上手体验 :**&#x20;
 
-https://win12.tech
+https://win12.tech/desktop
